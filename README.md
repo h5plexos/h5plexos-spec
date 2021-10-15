@@ -5,7 +5,7 @@ _Note: A useful reference for HDF5 file structure concepts is the
 This document contains links to glossary entries to explain HDF5 terms when used
 for the first time._
 
-This file defines __version 0.6.1__ of the H5PLEXOS data format specification.
+This file defines __version 0.6.2__ of the H5PLEXOS data format specification.
 This specification outlines a standardized means of storing results from a
 PLEXOS energy system simulation in terms of
 [objects](https://portal.hdfgroup.org/display/HDF5/HDF5+Glossary#HDF5Glossary-Object)
@@ -81,8 +81,8 @@ corresponding to the model's supplementary metadata (`Version`,
 ### `/metadata`
 
 The `/metadata` group contains information that can be used to contextualize
-the numerical results stored in the sibling `/data` group. It contains three
-child groups, `objects`, `relations`, and `times`.
+the numerical results stored in the sibling `/data` group. It contains four
+child groups, `objects`, `relations`, `times`, and `blocks`.
 
 #### `/metadata/objects`
 
@@ -121,6 +121,24 @@ an ISO-8601 date and time (`yyyy-mm-ddTHH:MM:SS`). The value of the label
 should be converted from the corresponding value
 originally reported by PLEXOS (which may be in a non-IS0-8601 datetime format).
 
+#### `/metadata/blocks`
+
+The `/metadata/blocks` group contains one dataset for each reported result
+phase (LT, PASA, MT, or ST).
+
+Each dataset (`/metadata/blocks/{phase}`) is a one-dimensional array of
+compound datatypes with two fields each:
+
+  1. `interval`: A 19-character ISO-8601 ASCII timestamp string
+  2. `block`: An unsigned integer indicating the (one-indexed) time block that
+     corresponds to `interval`
+
+The number of unique blocks described in the dataset should match the length
+of the time dimension of the phase's `interval`
+result data (discussed below). The dataset can be used as a mapping between
+(potentially non-chronological) time block results from PLEXOS, and one or more
+interval time periods.
+
 ### `/data`
 
 The `/data` group contains the numerical results reported by a PLEXOS
@@ -152,13 +170,15 @@ For example, all the values in the third position along the object axis of
 described by the third position of `/metadata/objects/{collection}`.
 
 The size of the middle dimension of the array (the second in both C/HDF5
-and Julia/MATLAB/Fortran formats) should match the number of time periods for
-which the property reports data. Note that this may be less than the total
-number of periods provided in `/metadata/times/{period}` - in this case the
-`period_offset` attribute is used to indicate the (zero-indexed) starting
-location in `/metadata/times/{period}`. Data should be chronologically
-increasing with respect to this array axis. For example, all the values in the
-third position along the time axis of
+and Julia/MATLAB/Fortran formats) should match the number of time periods or
+blocks for which the property reports data. Note that this may be less than
+the total number of periods provided in `/metadata/times/{period}`, or block
+index size provided in `/metadata/blocks/{phase}` -- in this case the
+`period_offset` attribute is used to indicate the number of elements to offset
+into `/metadata/times/{period}`, or the index offset to apply to line up with
+the blocks in `/metadata/blocks/{phase}`. For chronological (non-block) results,
+data should be chronologically increasing with respect to this array axis. For
+example, all the values in the third position along the time axis of
 `/data/{phase}/{period}/{collection}/{property}` correspond to the period
 described by the third + `period_offset` position of `/metadata/times/{period}`.
 
