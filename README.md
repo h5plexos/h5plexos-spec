@@ -5,7 +5,7 @@ _Note: A useful reference for HDF5 file structure concepts is the
 This document contains links to glossary entries to explain HDF5 terms when used
 for the first time._
 
-This file defines __version 0.6.0__ of the H5PLEXOS data format specification.
+This file defines __version 0.6.1__ of the H5PLEXOS data format specification.
 This specification outlines a standardized means of storing results from a
 PLEXOS energy system simulation in terms of
 [objects](https://portal.hdfgroup.org/display/HDF5/HDF5+Glossary#HDF5Glossary-Object)
